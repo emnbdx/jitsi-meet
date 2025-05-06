@@ -263,10 +263,10 @@
         "Remove": "Supprimer",
         "Share": "Partager",
         "Submit": "Soumettre",
-        "WaitForHostMsg": "La conférence n'a pas encore commencé. Si vous en êtes l'hôte, veuillez vous authentifier. Sinon, veuillez attendre son arrivée.",
+        "WaitForHostMsg": "Votre diététicien·ne est en route et va bientôt se connecter 🧑‍💻",
         "WaitForHostNoAuthMsg": "La conférence n'a pas encore commencé car aucun modérateur n'est encore arrivé. Veuillez patienter.",
         "WaitingForHostButton": "Attendre l'hôte",
-        "WaitingForHostTitle": "En attente de l'hôte…",
+        "WaitingForHostTitle": "👋 Veuillez patientez…",
         "Yes": "Oui",
         "accessibilityLabel": {
             "Cancel": "Annuler (quiter la popup)",

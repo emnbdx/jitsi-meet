@@ -42,31 +42,6 @@ class WaitForOwnerDialog extends PureComponent<IProps> {
      */
     constructor(props: IProps) {
         super(props);
-
-        this._onCancelWaitForOwner = this._onCancelWaitForOwner.bind(this);
-        this._onIAmHost = this._onIAmHost.bind(this);
-    }
-
-    /**
-     * Called when the cancel button is clicked.
-     *
-     * @private
-     * @returns {void}
-     */
-    _onCancelWaitForOwner() {
-        const { dispatch } = this.props;
-
-        dispatch(cancelWaitForOwner());
-    }
-
-    /**
-     * Called when the OK button is clicked.
-     *
-     * @private
-     * @returns {void}
-     */
-    _onIAmHost() {
-        this.props.dispatch(login());
     }
 
     /**
@@ -81,17 +56,13 @@ class WaitForOwnerDialog extends PureComponent<IProps> {
 
         return (
             <Dialog
-                cancel = {{ translationKey:
-                        this.props._alternativeCancelText ? 'dialog.WaitingForHostButton' : 'dialog.Cancel' }}
-                disableBackdropClose = { true }
-                hideCloseButton = { true }
-                ok = { this.props._hideLoginButton ? { hidden: true,
-                    disabled: true } : { translationKey: 'dialog.IamHost' } }
-                onCancel = { this._onCancelWaitForOwner }
-                onSubmit = { this._onIAmHost }
-                titleKey = { t('dialog.WaitingForHostTitle') }>
+                disableBackdropClose={true}
+                hideCloseButton={true}
+                ok={{ hidden: true }}
+                cancel={{ hidden: true }}
+                titleKey={t('dialog.WaitingForHostTitle')}>
                 <span>
-                    { this.props._hideLoginButton ? t('dialog.WaitForHostNoAuthMsg') : t('dialog.WaitForHostMsg') }
+                    {this.props._hideLoginButton ? t('dialog.WaitForHostNoAuthMsg') : t('dialog.WaitForHostMsg')}
                 </span>
             </Dialog>
         );
