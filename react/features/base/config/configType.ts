@@ -1,5 +1,6 @@
 import { ToolbarButton } from '../../toolbox/types';
 import { ILoggingConfig } from '../logging/types';
+import { IAudioSettings } from '../settings/reducer';
 import { DesktopSharingSourceType } from '../tracks/types';
 
 type ButtonsWithNotifyClick = 'camera' |
@@ -191,6 +192,7 @@ export interface IConfig {
     appId?: string;
     audioLevelsInterval?: number;
     audioQuality?: {
+        enableAdvancedAudioSettings?: boolean;
         opusMaxAverageBitrate?: number | null;
         stereo?: boolean;
     };
@@ -237,6 +239,7 @@ export interface IConfig {
         inactiveDisabled?: boolean;
     };
     constraints?: {
+        audio?: IAudioSettings;
         video?: {
             height?: {
                 ideal?: number;
@@ -461,6 +464,7 @@ export interface IConfig {
     lobby?: {
         autoKnock?: boolean;
         enableChat?: boolean;
+        showHangUp?: boolean;
     };
     localRecording?: {
         disable?: boolean;
@@ -520,8 +524,8 @@ export interface IConfig {
         hideExtraJoinButtons?: Array<string>;
         preCallTestEnabled?: boolean;
         preCallTestICEUrl?: string;
+        showHangUp?: boolean;
     };
-    prejoinPageEnabled?: boolean;
     raisedHands?: {
         disableLowerHandByModerator?: boolean;
         disableLowerHandNotification?: boolean;
@@ -553,7 +557,7 @@ export interface IConfig {
         disableDemote?: boolean;
         disableGrantModerator?: boolean;
         disableKick?: boolean;
-        disablePrivateChat?: 'all' | 'allow-moderator-chat';
+        disablePrivateChat?: 'all' | 'allow-moderator-chat' | 'disable-visitor-chat';
         disabled?: boolean;
     };
     replaceParticipant?: string;
@@ -650,7 +654,9 @@ export interface IConfig {
             audio?: boolean;
             video?: boolean;
         };
+        hideVisitorCountForVisitors?: boolean;
         queueService: string;
+        showJoinMeetingDialog?: boolean;
     };
     watchRTCConfigParams?: IWatchRTCConfiguration;
     webhookProxyUrl?: string;
