@@ -853,6 +853,82 @@ export default {
     },
 
     /**
+     * A screenshare on the direct peer connection renegotiates the camera and
+     * can drop it until both sides rejoin. While a share is up, stay on the
+     * bridge. Camera-only calls stay on P2P.
+     *
+     * @private
+     */
+    _installScreenshareP2PGuard() {
+        if (!room || room._mdelScreenshareP2PGuard) {
+            return;
+        }
+
+        const originalShouldBeInP2P = room._shouldBeInP2PMode.bind(room);
+
+        room._mdelScreenshareP2PGuard = true;
+        room._shouldBeInP2PMode = () => {
+            if (this._screenshareHoldsP2P || this._someoneIsSharingScreen()) {
+                return false;
+            }
+
+            return originalShouldBeInP2P();
+        };
+        room.on(
+            JitsiConferenceEvents.PARTICIPANT_PROPERTY_CHANGED,
+            (participant, name, oldValue, newValue) => {
+                if (name !== 'sharingScreen') {
+                    return;
+                }
+
+                // Delay the return to P2P so the other side has seen sharingScreen=false.
+                room._maybeStartOrStopP2P(newValue !== 'true' && newValue !== true);
+            });
+    },
+
+    /**
+     * @private
+     * @returns {boolean}
+     */
+    _someoneIsSharingScreen() {
+        if (!room) {
+            return false;
+        }
+
+        return room.getParticipants().some(participant => {
+            const value = participant.getProperty('sharingScreen');
+
+            return value === true || value === 'true';
+        });
+    },
+
+    /**
+     * Keep a screenshare off the direct peer connection.
+     *
+     * @param {boolean} hold - True from just before the desktop track is added
+     * until that track has been removed.
+     */
+    holdP2PForScreenshare(hold) {
+        if (!room) {
+            return Promise.resolve();
+        }
+
+        this._screenshareHoldsP2P = Boolean(hold);
+        room.setLocalParticipantProperty('sharingScreen', hold ? 'true' : 'false');
+        room._maybeStartOrStopP2P(!hold);
+
+        // _stopP2PSession resumes the bridge without waiting. The desktop track
+        // has to be added after that resume, otherwise it stays suspended.
+        if (hold && room.jvbJingleSession) {
+            return room.jvbJingleSession.setMediaTransferActive(true).catch(error => {
+                logger.error('Failed to resume bridge media before screenshare', error);
+            });
+        }
+
+        return Promise.resolve();
+    },
+
+    /**
      * Checks whether or not our connection is currently in interrupted and
      * reconnect attempts are in progress.
      *
@@ -1058,6 +1134,8 @@ export default {
         }
 
         this._room = room; // FIXME do not use this
+        this._screenshareHoldsP2P = false;
+        this._installScreenshareP2PGuard();
 
         APP.store.dispatch(_conferenceWillJoin(room));
 

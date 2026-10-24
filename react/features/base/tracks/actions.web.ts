@@ -190,10 +190,21 @@ async function _toggleScreenSharing(
                 return;
             }
         } else if (desktopVideoTrack) {
-            if (localScreenshare) {
-                await dispatch(replaceLocalTrack(localScreenshare.jitsiTrack, desktopVideoTrack, conference));
-            } else {
+            // Leave P2P before the new source is signaled. Adding it on the
+            // direct connection renegotiates the camera and can drop it.
+            const legacyConference = typeof APP === 'undefined' ? undefined : APP.conference;
+
+            await legacyConference?.holdP2PForScreenshare?.(true);
+            try {
+                if (localScreenshare) {
+                    await dispatch(replaceLocalTrack(localScreenshare.jitsiTrack, null, conference));
+                }
                 await dispatch(addLocalTrack(desktopVideoTrack));
+            } catch (error) {
+                legacyConference?.holdP2PForScreenshare?.(false);
+                desktopVideoTrack.dispose();
+
+                throw error;
             }
             if (isScreenshotCaptureEnabled(state, false, true)) {
                 dispatch(toggleScreenshotCaptureSummary(true));
@@ -235,10 +246,19 @@ async function _toggleScreenSharing(
 
         dispatch(toggleScreenshotCaptureSummary(false));
 
-        // Mute the desktop track instead of removing it from the conference since we don't want the client to signal
-        // a source-remove to the remote peer for the screenshare track. Later when screenshare is enabled again, the
-        // same sender will be re-used without the need for signaling a new ssrc through source-add.
+        // Remove the desktop source. Muting it keeps the last frame on the
+        // receiver, so the next share stays stuck on the previous image.
+        // The bridge accepts source-remove. P2P does not, which is why the
+        // share is moved there before this runs.
+        if (!audioOnly && localScreenshare?.jitsiTrack) {
+            await dispatch(replaceLocalTrack(localScreenshare.jitsiTrack, null, conference));
+        }
         dispatch(setScreenshareMuted(true));
+        if (!audioOnly) {
+            const legacyConference = typeof APP === 'undefined' ? undefined : APP.conference;
+
+            legacyConference?.holdP2PForScreenshare?.(false);
+        }
         if (desktopAudioTrack) {
             if (localAudio) {
                 localAudio.setEffect(undefined);
